@@ -7,7 +7,7 @@ use warnings;
 use JSON;
 use Text::Table;
 
-our $VERSION = '0.00_01';
+our $VERSION = '0.00_02';
 $VERSION = eval $VERSION;  # see L<perlmodstyle>
 
 # Preloaded methods go here.
@@ -29,11 +29,7 @@ sub search {
     my $type;
     for($q){
         if(/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/){
-            $type = 'inet';
-            last;
-        }
-        if(/^\d+$/){
-            $type = 'asn';
+            $type = 'infrastructure';
             last;
         }
         if(/\w+@\w+/){
@@ -41,7 +37,7 @@ sub search {
             last;
         }
         if(/\w+\.\w+/){
-            $type = 'domain';
+            $type = 'domains';
             last;
         }
         if(/^[a-fA-F0-9]{32,40}$/){
@@ -49,60 +45,43 @@ sub search {
             last;
         }
         if(/^url:([a-fA-F0-9]{32,40})$/){
-            $type = 'url';
+            $type = 'urls';
             $q = $1;
             last;
         }
-        if(/^\S+$/){
-            $type = 'impact';
-            last;
-        }
     }
-
+    return undef unless($type);
     $self->type($type);
-
-    $self->GET('/search/'.$type.'/'.$q.'?apikey='.$self->apikey().'&format='.$fmt);
+    $self->GET('/'.$type.'/'.$q.'?apikey='.$self->apikey());
 }
 
 sub table {
     my $self = shift;
     my $resp = shift;
     
-    my @a = @{from_json($resp)};
+    my $hash = from_json($resp);
+    return undef unless($hash->{'data'}->{'result'});
+    my @a = @{$hash->{'data'}->{'result'}};
     return('invalid json input') unless($#a > -1);
     my @cols = (
-        'restriction',  { is_sep => 1, title => '|', },
-        'impact',       { is_sep => 1, title => '|', },
-        'description',  { is_sep => 1, title => '|', },
+        'address',      { is_sep => 1, title => '|', },
         'detecttime',   { is_sep => 1, title => '|', },
-        'reference'
+        'restriction',  { is_sep => 1, title => '|', },
+        'description',  { is_sep => 1, title => '|', },
+        'alternative id'
     );
 
-    # test to see if 'address' key is in here
-    if(exists($a[0]->{'address'})){
-        push(@cols,{ is_sep => 1, title => '|' },'address');
-    }
     my $table = Text::Table->new(@cols);
 
-    foreach (@a){
-        if(exists($_->{'address'})){
-            $table->load([
-                $_->{'restriction'},
-                $_->{'impact'},
-                $_->{'description'},
-                $_->{'detecttime'},
-                $_->{'reference'},
-                $_->{'address'},
-            ]);
-       } else {
-            $table->load([
-                $_->{'restriction'},
-                $_->{'impact'},
-                $_->{'description'},
-                $_->{'detecttime'},
-                $_->{'reference'}
-            ]);
-        }
+    my @sorted = sort { $a->{'detecttime'} cmp $b->{'detecttime'} } @a;
+    foreach (@sorted){
+        $table->load([
+            $_->{'address'} || 'NA',
+            $_->{'detecttime'},
+            $_->{'restriction'},
+            $_->{'description'},
+            $_->{'alternativeid'},
+        ]);
     }
     return $table;
 }
@@ -138,26 +117,17 @@ CIF::Client - Perl extension that extends REST::Client for use with the CI-Frame
   use CIF::Client;
   my $client = CIF::Client->new({
     host        => $url,
-    timeout     => 10,
+    timeout     => 60,
     apikey      => $apikey,
-    format      => $format,
   });
 
-  $client->search($query,$format);
+  $client->search($query);
   die('request failed with code: '.$client->responseCode()) unless($client->responseCode == 200);
 
   my $text = $client->responseContent();
 
-  my @lines = split(/\n/,$text);
+  print $client->table($text) || die('no records')
 
-  if($format eq 'json'){
-    print $client->table($lines[2]);
-  } else {
-    foreach (@lines){
-        print $_."\n"
-    }
-  }
- 
 
 =head1 DESCRIPTION
 
@@ -165,7 +135,7 @@ Simple extension of REST::Client for use with the CI-Framework REST based interf
 
 =head1 SEE ALSO
 
-CIF::DBI, REST::Client, RT-CIF
+CIF::DBI, REST::Client
 
 http://code.google.com/p/collective-intelligence-framework/
 
@@ -173,7 +143,7 @@ Wes Young, E<lt>wes@barely3am.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 by Wes Young
+Copyright (C) 2010 REN-ISAC and The Trustees of Indiana University 
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.0 or,

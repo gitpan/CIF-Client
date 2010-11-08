@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               CIF-Client
-version:            0.00_01
+version:            0.00_02
 abstract:           Perl extension that extends REST::Client for use with the CI-Framework REST interface 
 author:
     - Wes Young <wes@>
