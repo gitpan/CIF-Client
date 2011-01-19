@@ -1,25 +1,30 @@
---- #YAML:1.0
-name:               CIF-Client
-version:            0.00_02
-abstract:           Perl extension that extends REST::Client for use with the CI-Framework REST interface 
+---
+abstract: 'Perl extension that extends REST::Client for use with the CI-Framework REST interface '
 author:
-    - Wes Young <wes@>
-license:            unknown
-distribution_type:  module
-configure_requires:
-    ExtUtils::MakeMaker:  0
-build_requires:
-    ExtUtils::MakeMaker:  0
-requires:
-    Getopt::Std:   ~
-    JSON:          ~
-    REST::Client:  ~
-    Text::Table:   ~
-no_index:
-    directory:
-        - t
-        - inc
-generated_by:       ExtUtils::MakeMaker version 6.50
+  - 'REN-ISAC and The Trustees of Indiana University '
+distribution_type: module
+generated_by: 'Module::Install version 0.76'
+license: perl
 meta-spec:
-    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
-    version:  1.4
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: CIF-Client
+no_index:
+  directory:
+    - inc
+    - t
+requires:
+  Class::Accessor: 0.31
+  Compress::Zlib: 2.008
+  Config::Simple: 4.58
+  Digest::MD5: 2.36
+  Digest::SHA1: 2.11
+  JSON: 2.07
+  Module::Pluggable: 3.6
+  REST::Client: 164
+  Snort::Rule: 1.07
+  Text::Table: 1.114
+  perl: 5.8.8
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.00_03

@@ -5,12 +5,12 @@ use strict;
 use Data::Dumper;
 use Getopt::Std;
 use CIF::Client;
+use JSON;
 
 my %opts;
 getopt('hdq:f:c:', \%opts);
 die(usage()) if($opts{'h'});
 
-my $query = $opts{'q'} || die(usage());
 my $format = $opts{'f'} || 'table';
 my $debug = ($opts{'d'}) ? 1 : 0;
 my $c = $opts{'c'} || $ENV{'HOME'}.'/.cif';
@@ -49,9 +49,23 @@ my $client = CIF::Client->new({
     apikey  => $apikey,
 });
 
-$client->search($query);
+my $h = {
+    address     => 'example.com',
+    severity    => 'high',
+    confidence  => '7.7',
+    description => 'zeus',
+};
+my $json = to_json($h);
+#$client->POST('/infrastructure/malware/submit?apikey='.$apikey,$json);
+$client->POST('/malware?apikey='.$apikey,$json);
+
+
 die('request failed with code: '.$client->responseCode()) unless($client->responseCode == 200);
 
-my $text = $client->responseContent();
-
-print $client->table($text) || die('no records');
+$json = from_json($client->responseContent());
+unless($json->{'message'}){
+    print $json->{'data'}->{'result'}.' created';
+} else {
+    print $json->{'message'};
+}
+print "\n";

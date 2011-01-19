@@ -1,17 +1,19 @@
-use 5.008008;
-use ExtUtils::MakeMaker;
-# See lib/ExtUtils/MakeMaker.pm for details of how to influence
-# the contents of the Makefile that is written.
-WriteMakefile(
-    NAME              => 'CIF::Client',
-    VERSION_FROM      => 'lib/CIF/Client.pm', # finds $VERSION
-    PREREQ_PM         => {
-        REST::Client    => undef,
-        Text::Table     => undef,
-        JSON            => undef,
-        Getopt::Std     => undef,
-    }, # e.g., Module::Name => 1.1
-    ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM  => 'lib/CIF/Client.pm', # retrieve abstract from module
-       AUTHOR         => 'Wes Young <wes@>') : ()),
-);
+use inc::Module::Install;
+
+name        'CIF-Client';
+all_from    'lib/CIF/Client.pm';
+
+requires    'REST::Client'      => '164';
+requires    'Text::Table'       => '1.114';
+requires    'JSON'              => '2.07';
+requires    'Compress::Zlib'    => '2.008';
+requires    'Config::Simple'    => '4.58';
+requires    'Snort::Rule'       => '1.07';
+requires    'Class::Accessor'   => '0.31';
+requires    'Digest::MD5'        => '2.36';
+requires    'Digest::SHA1'       => '2.11';
+requires    'Module::Pluggable' => '3.6';
+
+install_script 'cif';
+
+WriteAll();
