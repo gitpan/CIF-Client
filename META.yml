@@ -22,9 +22,10 @@ requires:
   JSON: 2.07
   Module::Pluggable: 3.6
   REST::Client: 164
+  Regexp::Common::net: 2.108
   Snort::Rule: 1.07
   Text::Table: 1.114
   perl: 5.8.8
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.00_03
+version: 0.00_04
