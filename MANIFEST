@@ -11,10 +11,19 @@ inc/Module/Install/WriteAll.pm
 lib/CIF/Client.pm
 lib/CIF/Client/Plugin/Bindzone.pm
 lib/CIF/Client/Plugin/Csv.pm
+lib/CIF/Client/Plugin/Iodef.pm
+lib/CIF/Client/Plugin/Iodef/Bgp.pm
+lib/CIF/Client/Plugin/Iodef/Domain.pm
+lib/CIF/Client/Plugin/Iodef/Ipv4.pm
+lib/CIF/Client/Plugin/Iodef/Malware.pm
+lib/CIF/Client/Plugin/Iodef/Url.pm
 lib/CIF/Client/Plugin/Iptables.pm
+lib/CIF/Client/Plugin/Output.pm
+lib/CIF/Client/Plugin/Parser.pm
 lib/CIF/Client/Plugin/Pcapfilter.pm
 lib/CIF/Client/Plugin/Raw.pm
 lib/CIF/Client/Plugin/Snort.pm
+lib/CIF/Client/Plugin/Table.pm
 Makefile.PL
 MANIFEST			This list of files
 META.yml

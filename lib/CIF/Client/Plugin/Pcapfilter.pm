@@ -3,9 +3,14 @@ package CIF::Client::Plugin::Pcapfilter;
 use Regexp::Common qw/net/;
 use Regexp::Common::net::CIDR;
 
+sub type { return 'output'; }
+
 sub write_out {
     my $self = shift;
-    my @array = @_;
+    my $config = shift;
+    my $feed = shift;
+    my @array = @{$feed->{'feed'}->{'entry'}};
+
     my $text = '';
     foreach (@array){
         my $address = $_->{'address'};

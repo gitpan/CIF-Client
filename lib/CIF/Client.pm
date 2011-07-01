@@ -14,11 +14,12 @@ use Data::Dumper;
 use Encode qw/decode_utf8/;
 use Digest::SHA1 qw/sha1_hex/;
 use MIME::Base64;
-use Module::Pluggable search_path => ['CIF::Client::Plugin'];
+use Module::Pluggable search_path => ['CIF::Client::Plugin'], require => 1, except => qr/Plugin::\S+::/;
+use URI::Escape;
 
 __PACKAGE__->mk_accessors(qw/apikey config/);
 
-our $VERSION = '0.00_04';
+our $VERSION = '0.01_01';
 $VERSION = eval $VERSION;  # see L<perlmodstyle>
 
 # Preloaded methods go here.
@@ -26,6 +27,7 @@ $VERSION = eval $VERSION;  # see L<perlmodstyle>
 sub _plugins {
     my @plugs = plugins();
     foreach (@plugs){
+        next unless($_->type eq 'output');
         $_ =~ s/CIF::Client::Plugin:://;
         $_ = lc($_);
     }
@@ -52,7 +54,8 @@ sub new {
     $self->{'max_desc'} = $args->{'max_desc'};
     $self->{'restriction'} = $cfg->{'restriction'};
     $self->{'severity'} = $cfg->{'severity'};
-    $self->{'silent'} = $cfg->{'silent'};
+    $self->{'nolog'} = $cfg->{'nolog'};
+    $self->{'simple_hashes'} = $args->{'simple_hashes'} || $cfg->{'simple_hashes'};
     
     if($args->{'fields'}){
         @{$self->{'fields'}} = split(/,/,$args->{'fields'}); 
@@ -62,94 +65,80 @@ sub new {
 }
 
 sub GET  {
-    my ($self,$q,$s,$r,$silent) = @_;
+    my $self = shift;
+    my %args = @_;
 
+    my $q = $args{'query'};
+    if(lc($q) =~ /^http(s)?:\/\//){
+        ## escape unsafe chars, that's what the data-warehouse does
+        ## TODO -- doc this
+        $q = uri_escape($q,'\x00-\x1f\x7f-\xff');
+        $q = lc($q);
+        $q = sha1_hex($q);
+    }
     my $rest = '/'.$q.'?apikey='.$self->apikey();
-    my $severity = ($s) ? $s : $self->{'severity'};
-    my $restriction = ($r) ? $r : $self->{'restriction'};
-    $silent = ($silent) ? $silent : $self->{'silent'};
+    my $severity = ($args{'severity'}) ? $args{'severity'} : $self->{'severity'};
+    my $restriction = ($args{'restriction'}) ? $args{'restriction'} : $self->{'restriction'};
+    my $nolog = ($args{'nolog'}) ? $args{'nolog'} : $self->{'nolog'};
+    my $nomap = ($args{'nomap'}) ? $args{'nomap'} : $self->{'nomap'};
+    my $confidence = ($args{'confidence'}) ? $args{'confidence'} : $self->{'confidence'};
 
     $rest .= '&severity='.$severity if($severity);
     $rest .= '&restriction='.$restriction if($restriction);
-    $rest .= '&silent='.$silent if($silent);
+    $rest .= '&nolog='.$nolog if($nolog);
+    $rest .= '&nomap=1' if($nomap);
+    $rest .= '&confidence='.$confidence if($confidence);
 
     $self->SUPER::GET($rest);
     my $content = $self->{'_res'}->{'_content'};
+    warn $content if($::debug);
     return unless($content);
     return unless($self->responseCode == 200);
     my $text = $self->responseContent();
-    my $json = from_json($content, {utf8 => 1});
-    if(my $sha1 = $json->{'data'}->{'result'}->{'hash_sha1'}){
-        my $r = $json->{'data'}->{'result'}->{'feed'};
-        die("sha1's don't match, possible data corruption... try again") unless($sha1 eq sha1_hex($r));
+    my $hash = from_json($content, {utf8 => 1});
+    my $t = ref(@{$hash->{'data'}->{'feed'}->{'entry'}}[0]);
+    unless($t eq 'HASH'){
+        my $r = @{$hash->{'data'}->{'feed'}->{'entry'}}[0];
+        return unless($r);
         $r = uncompress(decode_base64($r));
-        $json->{'data'}->{'result'}->{'feed'} = from_json($r);
-        $self->{'_res'}->{'_content'} = to_json($json);
+        $r = from_json($r);
+        $hash->{'data'}->{'feed'}->{'entry'} = $r;
     }
+    ## TODO -- finish implementing this into the config
+    if($self->{'simple_hashes'}){
+        $self->hash_simple($hash);
+    }
+    return($hash->{'data'});
 }       
 
-sub table {
+sub hash_simple {
     my $self = shift;
-    my $resp = shift;
+    my $hash = shift;
+    my @entries = @{$hash->{'data'}->{'feed'}->{'entry'}};
 
-    my $hash = from_json($resp);
-    return 0 unless($hash->{'data'}->{'result'});
-    $hash = $hash->{'data'}->{'result'};
-    my $created = $hash->{'created'};
-    my $feedid = $hash->{'id'};
-    my @a = @{$hash->{'feed'}->{'items'}};
-    return(undef,'invalid json input') unless($#a > -1);
-    my @cols = (
-        'restriction',
-        'severity',
-    );
-    if(exists($a[0]->{'hash_md5'})){
-        push(@cols,('hash_md5','hash_sha1'));
-    } elsif(exists($a[0]->{'url_md5'})){
-        push(@cols,('url_md5','url_sha1','malware_md5','malware_sha1'));
-    } elsif(exists($a[0]->{'rdata'})) {
-        push(@cols,('address','rdata','type'));
-    } else {
-        push(@cols,'address','portlist');
+    my @plugs = $self->plugins();
+    my @a;
+    foreach (@plugs){
+        next if(/Parser$/);
+        push(@a,$_) if($_->type eq 'parser');
     }
-    push(@cols,(
-        'detecttime',
-        'description',
-        'alternativeid_restriction',
-        'alternativeid',
-    ));
-    if($self->{'fields'}){
-        @cols = @{$self->{'fields'}};
+    @plugs = @a;
+    my @return;
+    foreach my $p (@plugs){
+        foreach my $e (@entries){
+            if($p->prepare($e)){
+                my @ary = @{$p->hash_simple($e)};
+                push(@return,@ary);
+            } else {
+                push(@return,$e);
+            }
+        }
     }
-    if(my $c = $self->{'config'}->{'display'}){
-        @cols = @$c;
-    }
-
-    my @header = map { $_, { is_sep => 1, title => '|' } } @cols;
-    pop(@header);
-    my $table = Text::Table->new(@header);
-
-    my @sorted = sort { $a->{'detecttime'} cmp $b->{'detecttime'} } @a;
-    if(my $max = $self->{'max_desc'}){
-        map { $_->{'description'} = substr($_->{'description'},0,$max) } @sorted;
-    }
-    foreach my $r (@sorted){
-        $table->load([ map { $r->{$_} } @cols]);
-    }
-    if($created){
-        $table = "Feed Created: ".$created."\n\n".$table;
-    }
-    if(my $r = $hash->{'feed'}->{'restriction'}){
-        $table = "Feed Restriction: ".$r."\n".$table;
-    }
-    if(my $s = $hash->{'feed'}->{'severity'}){
-        $table = 'Feed Severity: '.$s."\n".$table;
-    }
-    if($feedid){
-        $table = 'Feed Id: '.$feedid."\n".$table;
-    }
-    return "\n".$table;
+    return unless(@return);
+    @{$hash->{'data'}->{'feed'}->{'entry'}} = @return;
+    return($hash);
 }
+
 
 1;
 __END__
@@ -208,7 +197,8 @@ Wes Young, E<lt>wes@barely3am.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2010 REN-ISAC and The Trustees of Indiana University 
+Copyright (C) 2010 by REN-ISAC and The Trustees of Indiana University 
+Copyright (C) 2010 by Wes Young
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.0 or,

@@ -1,8 +1,12 @@
 package CIF::Client::Plugin::Iptables;
 
+sub type { return 'output'; }
 sub write_out {
     my $self = shift;
-    my @array = @_;
+    my $config = shift;
+    my $feed = shift;
+    my @array = @{$feed->{'feed'}->{'entry'}};
+
     my $text = "iptables -N CIF_IN\n";
     $text .= "iptables -F CIF_IN\n";
     $text .= "iptables -N CIF_OUT\n";
