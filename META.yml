@@ -23,9 +23,10 @@ requires:
   Module::Pluggable: 3.6
   REST::Client: 164
   Regexp::Common::net: 2.108
+  Regexp::Common::net::CIDR: 0.02
   Snort::Rule: 1.07
   Text::Table: 1.114
   perl: 5.8.8
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.01_01
+version: 0.01_02

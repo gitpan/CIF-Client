@@ -19,17 +19,19 @@ use URI::Escape;
 
 __PACKAGE__->mk_accessors(qw/apikey config/);
 
-our $VERSION = '0.01_01';
+our $VERSION = '0.01_02';
 $VERSION = eval $VERSION;  # see L<perlmodstyle>
 
 # Preloaded methods go here.
 
 sub _plugins {
-    my @plugs = plugins();
-    foreach (@plugs){
-        next unless($_->type eq 'output');
+    my @plugs;
+    foreach (plugins()){
+        next unless($_->type() eq 'output');
         $_ =~ s/CIF::Client::Plugin:://;
         $_ = lc($_);
+        next if($_ eq 'output');
+        push(@plugs,$_);
     }
     return (@plugs);
 }
