@@ -9,7 +9,6 @@ inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 lib/CIF/Client.pm
-lib/CIF/Client/Plugin/.Snort.pm.swp
 lib/CIF/Client/Plugin/Bindzone.pm
 lib/CIF/Client/Plugin/Csv.pm
 lib/CIF/Client/Plugin/Iodef.pm
