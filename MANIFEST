@@ -14,6 +14,7 @@ lib/CIF/Client/Plugin/Csv.pm
 lib/CIF/Client/Plugin/Iodef.pm
 lib/CIF/Client/Plugin/Iodef/Bgp.pm
 lib/CIF/Client/Plugin/Iodef/Domain.pm
+lib/CIF/Client/Plugin/Iodef/Group.pm
 lib/CIF/Client/Plugin/Iodef/Ipv4.pm
 lib/CIF/Client/Plugin/Iodef/Malware.pm
 lib/CIF/Client/Plugin/Iodef/Url.pm
