@@ -2,8 +2,12 @@
 abstract: 'Perl extension that extends REST::Client for use with the CI-Framework REST interface '
 author:
   - 'REN-ISAC and The Trustees of Indiana University '
+build_requires:
+  ExtUtils::MakeMaker: 6.42
+configure_requires:
+  ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.76'
+generated_by: 'Module::Install version 1.00'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -19,6 +23,7 @@ requires:
   Config::Simple: 4.58
   Digest::MD5: 2.36
   Digest::SHA1: 2.11
+  HTML::Table: 2.08
   JSON: 2.07
   Module::Pluggable: 3.6
   REST::Client: 164
@@ -29,4 +34,4 @@ requires:
   perl: 5.8.8
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.01_07
+version: 0.01_08

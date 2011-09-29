@@ -19,7 +19,7 @@ use URI::Escape;
 
 __PACKAGE__->mk_accessors(qw/apikey config/);
 
-our $VERSION = '0.01_07';
+our $VERSION = '0.01_08';
 $VERSION = eval $VERSION;  # see L<perlmodstyle>
 
 # Preloaded methods go here.
@@ -40,10 +40,16 @@ sub new {
     my $class = shift;
     my $args = shift;
 
-    my $cfg = Config::Simple->new($args->{'config'}) || return(undef,'missing config file');
-    $cfg = $cfg->param(-block => 'client');
+    return(undef,'missing config file') unless($args->{'config'} || $args->{'host'});
 
-    my $apikey = $args->{'apikey'} || $cfg->{'apikey'} || return(undef,'missing apikey');
+    my $cfg;
+    
+    if($args->{'config'}){
+        $cfg = Config::Simple->new($args->{'config'}) || return(undef,'missing config file');
+        $cfg = $cfg->param(-block => 'client');
+    }
+
+    my $apikey = $args->{'apikey'} || $cfg->{'apikey'};
     unless($args->{'host'}){
         $args->{'host'} = $cfg->{'host'} || return(undef,'missing host');
     }
@@ -62,6 +68,8 @@ sub new {
 
     $self->{'verify_tls'}       = (defined($args->{'verify_tls'})) ? $args->{'verify_tls'} : $cfg->{'verify_tls'};
     $self->{'guid'}             = $args->{'guid'} || $cfg->{'default_guid'};
+    $self->{'limit'}            = $args->{'limit'} || $cfg->{'limit'};
+    $self->{'group_map'}        = (defined($args->{'group_map'})) ? $args->{'group_map'} : $cfg->{'group_map'};
     
     if($args->{'fields'}){
         @{$self->{'fields'}} = split(/,/,$args->{'fields'}); 
@@ -93,6 +101,7 @@ sub GET  {
     my $nomap = ($args{'nomap'}) ? $args{'nomap'} : $self->{'nomap'};
     my $confidence = ($args{'confidence'}) ? $args{'confidence'} : $self->{'confidence'};
     my $guid = $args{'guid'} || $self->{'guid'};
+    my $limit = $args{'limit'} || $self->{'limit'};
 
     $rest .= '&severity='.$severity if($severity);
     $rest .= '&restriction='.$restriction if($restriction);
@@ -100,6 +109,7 @@ sub GET  {
     $rest .= '&nomap=1' if($nomap);
     $rest .= '&confidence='.$confidence if($confidence);
     $rest .= '&guid='.$guid if($guid);
+    $rest .= '&limit='.$limit if($limit);
 
     $self->SUPER::GET($rest);
     my $content = $self->{'_res'}->{'_content'};
