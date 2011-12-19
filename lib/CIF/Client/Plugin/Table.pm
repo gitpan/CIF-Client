@@ -13,6 +13,7 @@ sub write_out {
     my $query = $feed->{'query'};
     my $hash = $feed->{'feed'};
     my $group_map = ($config->{'group_map'}) ? $hash->{'group_map'} : undef;
+    my $feed_guid = $hash->{'guid'};
 
     my $created = $hash->{'created'} || $hash->{'detecttime'};
     my $feedid = $hash->{'id'};
@@ -88,6 +89,10 @@ sub write_out {
     }
     @a = reverse(@a) if($reverse);
     foreach my $r (@a){
+        if($r->{'address'} && $config->{'compress_address'} && length($r->{'address'}) > 32){
+            $r->{'address'} = substr($r->{'address'},0,31);
+            $r->{'address'} .= '...';
+        }
         $table->load([ map { $r->{$_} } @cols]);
     }
     if($created){
@@ -104,6 +109,10 @@ sub write_out {
     }
     if($config->{'description'}){
         $table = 'Description: '.$config->{'description'}."\n".$table;
+    }
+    if($feed_guid){
+        $feed_guid = $group_map->{$feed_guid} if($group_map);
+        $table = 'Feed Group ID: '.$feed_guid."\n".$table;
     }
     $table = "Query: ".$query."\n".$table;
     return "\n".$table;

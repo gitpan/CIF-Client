@@ -19,7 +19,7 @@ use URI::Escape;
 
 __PACKAGE__->mk_accessors(qw/apikey config/);
 
-our $VERSION = '0.01_11';
+our $VERSION = '0.01';
 $VERSION = eval $VERSION;  # see L<perlmodstyle>
 
 # Preloaded methods go here.
@@ -70,6 +70,7 @@ sub new {
     $self->{'guid'}             = $args->{'guid'} || $cfg->{'default_guid'};
     $self->{'limit'}            = $args->{'limit'} || $cfg->{'limit'};
     $self->{'group_map'}        = (defined($args->{'group_map'})) ? $args->{'group_map'} : $cfg->{'group_map'};
+    $self->{'compress_address'} = $args->{'compress_address'} || $cfg->{'compress_address'};
     
     if($args->{'fields'}){
         @{$self->{'fields'}} = split(/,/,$args->{'fields'}); 
