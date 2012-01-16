@@ -79,6 +79,8 @@ Feeds:
     \$> perl $0 -q domain/malware -p bindzone -c 95 -s medium
     \$> perl $0 -q domain -s medium -c 40 -p raw -H 0 -r private
 
+Configuration:
+
     configuration file ~/.cif should be readable and look something like:
 
     [client]
@@ -87,6 +89,23 @@ Feeds:
     timeout = 60
     # add this if you have a self signed cert
     verify_tls = 0
+
+Plugin Specific Configurations:
+
+    Table:
+        
+        [clent]
+        table_nowarning = 1
+
+    Bindzone:
+        
+        [client]
+        bindzone_path = /etc/namedb/
+
+    Snort:
+    
+        [client]
+        snort_startsid = 10000000
 
 EOF
 }
@@ -116,7 +135,11 @@ foreach (@q){
         limit       => $limit,
         group_map   => $group_map,
     );
-    die('request failed with code: '.$client->responseCode()."\n\n".$client->responseContent()) unless($client->responseCode == 200);
+    unless($client->responseCode() == 200){
+        my $json = JSON::from_json($client->responseContent());
+        print 'request failed with code: '.$json->{'status'}." ".$json->{'message'}."\n";
+        exit(-1);
+    }
    
     my $plug = 'CIF::Client::Plugin::'.ucfirst($plugin);
     eval "require $plug";
