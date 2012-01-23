@@ -1,5 +1,8 @@
 Revision history for Perl extension CIF::Client.
 
+0.02_03 2012-01-23
+    - stupid bugfix
+
 0.02_02 2012-01-23
     - added -I flag (round_confidence) to round down confidence using int() (see: perldoc -f int)
 

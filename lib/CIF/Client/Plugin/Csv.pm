@@ -1,7 +1,6 @@
 package CIF::Client::Plugin::Csv;
 
 use Regexp::Common qw/net/;
-use Encode;
 
 sub type { return 'output'; }
 
@@ -26,8 +25,6 @@ sub write_out {
     }
     my $text = '# '.join(',',@header);
     $text .= "\n".$body;
-    use Data::Dumper;
-    warn Dumper($text);
 
     return $text;
 }
