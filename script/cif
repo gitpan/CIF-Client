@@ -99,8 +99,13 @@ Plugin Specific Configurations:
 
     Table:
         
-        [clent]
+        [client]
         table_nowarning = 1
+
+    Csv:
+        [client]
+        # when we filter out commas in the various fields, do we replace them with "_"'s or just spaces
+        csv_noseperator = 1
 
     Bindzone:
         
