@@ -29,7 +29,7 @@ requires:
   LWP::Protocol::https: 0
   Module::Install: 1.00
   Module::Pluggable: 3.6
-  REST::Client: 217
+  REST::Client: 243
   Regexp::Common::net: 2.108
   Regexp::Common::net::CIDR: 0.02
   Snort::Rule: 1.07
@@ -37,4 +37,4 @@ requires:
   perl: 5.8.8
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.03
+version: 0.04

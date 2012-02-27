@@ -4,7 +4,7 @@ name        'CIF-Client';
 all_from    'lib/CIF/Client.pm';
 
 requires    'Module::Install'   => '1.00';
-requires    'REST::Client'      => '217';
+requires    'REST::Client'      => '243';
 requires    'Text::Table'       => '1.114';
 requires    'HTML::Table'       => '2.08';
 requires    'JSON'              => '2.07';
