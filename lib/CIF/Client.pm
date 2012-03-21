@@ -19,7 +19,7 @@ use URI::Escape;
 
 __PACKAGE__->mk_accessors(qw/apikey config/);
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 $VERSION = eval $VERSION;  # see L<perlmodstyle>
 
 # Preloaded methods go here.
@@ -91,7 +91,18 @@ sub new {
     return($self);
 }
 
-sub GET  {
+sub POST {
+    my $self = shift;
+    my $data = shift;
+    return unless($data);
+
+    $data = JSON::to_json($data);
+
+    my $rest = '/?apikey='.$self->apikey();
+    $self->SUPER::POST($rest,$data);
+    return $self->responseCode();
+}
+sub GET {
     my $self = shift;
     my %args = @_;
 

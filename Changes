@@ -1,5 +1,9 @@
 Revision history for Perl extension CIF::Client.
 
+0.05    2012-03-21
+    - fixed bug with client displaying email address field
+    - added POST function
+
 0.04    2012-02-27
     - upstream REST::Client was fixed, bumped Makefile.PL to ver 243
 
