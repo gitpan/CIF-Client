@@ -7,7 +7,7 @@ sub hash_simple {
     my $portlist = $hash->{'EventData'}->{'Flow'}->{'System'}->{'Service'}->{'Portlist'};
     my $protocol = $hash->{'EventData'}->{'Flow'}->{'System'}->{'Service'}->{'ip_protocol'};
 
-    $portlist =~ s/\s+//g;
+    $portlist =~ s/\s+//g if($portlist);
 
     return({
         portlist    => $portlist,
