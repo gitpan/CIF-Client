@@ -1,5 +1,30 @@
 Revision history for Perl extension CIF::Client.
 
+0.09    2012-04-30
+	- changed snort output so that the 'protocol' field is set to tcp/udp/icmp/ip according to 
+	  the value in the CIF database (previously 'ip' was always outputted)
+	  
+	- added to config file (~/.cif)
+		variable		default
+		----------------------------------------------------------------------------
+		snort_classtype	null (won't appear in the outputted rules)
+		snort_tag		null (won't appear in the outputted rules)
+		snort_priority	default based on CIF severity (5=medium, 9=high otherwise 1)
+		snort_threshold	"type limit,track by_src,count 1,seconds 3600"
+		snort_srcnet	any
+		snort_srcport	any
+		
+		example ~/.cif excerpt
+		
+		snort_startsid = 1234567000
+		snort_classtype = botnet-connection-known
+		snort_tag = "session, 50, packets"
+		snort_priority = 1
+		snort_sourcenet = "[$HOME_NET,!$TRUSTED]"
+
+0.08    2012-04-04
+    - fix to csv plugin, adding group map (thanks Adam S.).
+
 0.07    2012-03-30
     - fixed bug in Iodef/Service.pm
 

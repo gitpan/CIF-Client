@@ -8,6 +8,9 @@ sub write_out {
     my $self = shift;
     my $config = shift;
     my $feed = shift;
+    my $hash = $feed->{'feed'};
+    my $group_map = ($config->{'group_map'}) ? $hash->{'group_map'} : undef;
+    my $feed_guid = $hash->{'guid'};
     my @array = @{$feed->{'feed'}->{'entry'}};
     
     $config = $config->{'config'};
@@ -21,6 +24,9 @@ sub write_out {
     }
     @header = sort { $a cmp $b } @header;
     my $body = '';
+    if($group_map){
+        map { $_->{'guid'} = $group_map->{$_->{'guid'}} } @array;
+    }
     foreach my $a (@array){
         delete($a->{'message'}); 
         # there's no clean way to do this just yet
