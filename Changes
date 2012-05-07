@@ -1,5 +1,17 @@
 Revision history for Perl extension CIF::Client.
 
+0.10    2012-05-07
+    - bugfix to Iodef/Url.pm where Regexp::Common qw/URI/ wasn't functioning properly for google spreadsheet phishes
+
+    - [jeff] modified config parsing to allow for [query] sections like [botnet/url] and so 
+      on. you can use this to customize the snort output without needing to keep
+      multiple config files. see example.conf 
+      
+    - [jeff] modified snort output plugin to properly handle feeds where the 'address' field contains
+      a url. the snort rule will be properly formatted once the url is parsed. "the right thing"
+      will happen if eg a port number is specified in the url, or an ip address, and so on. 
+      only urls specifying the http protocol are processed. 
+      
 0.09    2012-04-30
 	- changed snort output so that the 'protocol' field is set to tcp/udp/icmp/ip according to 
 	  the value in the CIF database (previously 'ip' was always outputted)

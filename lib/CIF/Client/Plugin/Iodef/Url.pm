@@ -20,7 +20,7 @@ sub hash_simple {
         }
     }
 
-    return unless($address =~ /^$RE{'URI'}/);
+    return unless($address =~ /^(ftp|https?):\/\//);
 
     my $ad = $data->{'EventData'}->{'Flow'}->{'System'}->{'AdditionalData'};
     return unless($ad);
