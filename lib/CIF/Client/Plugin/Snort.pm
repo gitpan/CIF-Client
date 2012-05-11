@@ -25,6 +25,8 @@ sub write_out {
     my $classtype = confor($config, 'snort_classtype', undef);
     my $srcnet = confor($config, 'snort_srcnet', 'any');
     my $srcport = confor($config, 'snort_srcport', 'any');
+    my $msg_prefix = confor($config, 'snort_msg_prefix', '');
+    
 
     my $rules = '';
 
@@ -54,7 +56,7 @@ sub write_out {
 			$dstport = $portlist;	
 		}
 		else {
-			($urlhost, $urlport, $urlfile) = isurl($_->{'address'});
+			($urlhost, $urlport, $urlfile) = ishttpurl($_->{'address'});
 			if (defined($urlhost)) {
 				my $urlisip = isipv4($urlhost);
 				$_->{'protocol'} = 6; # TCP by definition
@@ -77,14 +79,16 @@ sub write_out {
             -dir    => '->',
         );
         
-        $r->opts('msg',$_->{'restriction'}.' - '.$_->{'impact'}.' '.
+        my $reference = make_snort_ref($_->{'alternativeid'});
+        
+        $r->opts('msg', $msg_prefix . $_->{'restriction'}.' - '.$_->{'impact'}.' '.
         		$_->{'description'}
         		);
         $r->opts('threshold', $thresh) if $thresh;
         $r->opts('tag', $tag) if $tag;
         $r->opts('classtype', $classtype) if $classtype;
         $r->opts('sid', $sid++);
-        $r->opts('reference',$_->{'alternativeid'}) if($_->{'alternativeid'});
+        $r->opts('reference',$reference) if($reference);
         $r->opts('priority', $pri || $priority);
         
         #alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (Msg: "Mal_URI
@@ -95,12 +99,12 @@ sub write_out {
         if ($urlhost) {
         	$r->opts('flow', 'to_server');
         	if (!isipv4($urlhost)) {
-        		$r->opts('content', 'Host|3A| ' . $urlhost);
+        		$r->opts('content', 'Host|3A| ' . escape_content($urlhost));
         		$r->opts('http_header');
         		$r->opts('nocase');
         	}
         	if ($urlfile) {
-        		$r->opts('content', $urlfile);
+        		$r->opts('content', escape_content($urlfile));
         		$r->opts('http_uri');
         		$r->opts('nocase');
         	}
@@ -122,8 +126,9 @@ sub isipv4 {
 	return 0;
 }
 
-sub isurl {
+sub ishttpurl {
 	my $x = shift;
+	
 	return (undef, undef, undef) unless $x;
 	
 	# it only makes sense to try to look for http: urls
@@ -137,11 +142,35 @@ sub isurl {
 	return (undef, undef, undef); 
 }
 
+sub make_snort_ref {
+	my $r = shift;
+	return undef unless defined($r);
+	if ($r =~ /(http[s]):\/\/(.*)/) {
+		return "url," . $2 if ($1 eq "http");
+		return "urlssl," . $2;
+	}
+	return undef;
+}
+
 sub translate_proto {
 	my $protonum = shift;	
 	my $protos = { 6 => 'tcp', 17 => 'udp', 1 => 'icmp' }; # snort only supports these, default is 'ip'
 	return $protos->{$protonum} if (defined($protonum) && exists($protos->{$protonum}));
 	return 'ip';
+}
+
+# http://manual.snort.org/node32.html#SECTION00451000000000000000
+#Note:  
+#Also note that the following characters must be escaped inside a content rule:
+#
+#    ; \ "
+    
+sub escape_content {
+	my $x = shift;
+	$x =~ s/\\/\\\\/gi;
+	$x =~ s/;/\\;/gi;
+	$x =~ s/\"/\\"/gi;
+	return $x;
 }
 
 sub confor {
