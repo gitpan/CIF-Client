@@ -1,5 +1,4 @@
 package CIF::Client::Plugin::Iptables;
-use CIF::Client::Support qw(confor);
 
 sub type { return 'output'; }
 sub write_out {
@@ -8,12 +7,6 @@ sub write_out {
     my $feed = shift;
     my @array = @{$feed->{'feed'}->{'entry'}};
 
-    my @config_search_path = ( $feed->{'query'}, 'client' );
-
-	# fyi
-	#   my $cfg_csv_noseparator = confor($config, \@config_search_path, 'csv_noseparator', undef);
-
-        
     my $text = "iptables -N CIF_IN\n";
     $text .= "iptables -F CIF_IN\n";
     $text .= "iptables -N CIF_OUT\n";

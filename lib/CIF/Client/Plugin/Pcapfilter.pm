@@ -1,5 +1,4 @@
 package CIF::Client::Plugin::Pcapfilter;
-use CIF::Client::Support qw(confor);
 
 use Regexp::Common qw/net/;
 use Regexp::Common::net::CIDR;

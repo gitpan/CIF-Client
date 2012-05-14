@@ -1,5 +1,4 @@
 package CIF::Client::Plugin::Bindzone;
-use CIF::Client::Support qw(confor);
 
 sub type { return 'output'; }
 
@@ -10,18 +9,13 @@ sub write_out {
     my $config = shift;
     my $feed = shift;
     my @array = @{$feed->{'feed'}->{'entry'}};
-    
-    my @config_search_path = ( $feed->{'query'}, 'client' );
-
-    my $cfg_bindzone_path = confor($config, \@config_search_path, 'bindzone_path', undef);
-    
     $config = $config->{'config'};
 
     my $query = $feed->{'query'};
     $query =~ s/\//_/g;
 
-    if($cfg_bindzone_path){
-        $default_output = $cfg_bindzone_path;
+    if($config->{'bindzone_path'}){
+        $default_output = $config->{'bindzone_path'};
     }
 
     $query = 'cif_'.$query.'.zone'; 

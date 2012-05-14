@@ -19,7 +19,7 @@ use URI::Escape;
 
 __PACKAGE__->mk_accessors(qw/apikey config/);
 
-our $VERSION = '0.11_01';
+our $VERSION = '0.11_02';
 $VERSION = eval $VERSION;  # see L<perlmodstyle>
 
 # Preloaded methods go here.
@@ -42,16 +42,16 @@ sub new {
 
     return(undef,'missing config file') unless($args->{'config'} || $args->{'host'});
 
-    my ($cfg, $clientcfg);
+    my $cfg;
     
     if($args->{'config'}){
         $cfg = Config::Simple->new($args->{'config'}) || return(undef,'missing config file');
-        $clientcfg = $cfg->param(-block => 'client');
+        $cfg = $cfg->param(-block => 'client');
     }
 
-    my $apikey = $args->{'apikey'} || $clientcfg->{'apikey'};
+    my $apikey = $args->{'apikey'} || $cfg->{'apikey'};
     unless($args->{'host'}){
-        $args->{'host'} = $clientcfg->{'host'} || return(undef,'missing host');
+        $args->{'host'} = $cfg->{'host'} || return(undef,'missing host');
     }
 
     my $self = REST::Client->new($args);
@@ -59,22 +59,21 @@ sub new {
 
     $self->{'apikey'}           = $apikey;
     $self->{'config'}           = $cfg;
-    $self->{'clientconfig'}     = $clientcfg;
     $self->{'max_desc'}         = $args->{'max_desc'};
-    $self->{'restriction'}      = $clientcfg->{'restriction'};
-    $self->{'severity'}         = $clientcfg->{'severity'};
-    $self->{'nolog'}            = $clientcfg->{'nolog'};
-    $self->{'restriction'}      = $args->{'restriction'} || $clientcfg->{'restriction'};
-    $self->{'simple_hashes'}    = $args->{'simple_hashes'} || $clientcfg->{'simple_hashes'};
+    $self->{'restriction'}      = $cfg->{'restriction'};
+    $self->{'severity'}         = $cfg->{'severity'};
+    $self->{'nolog'}            = $cfg->{'nolog'};
+    $self->{'restriction'}      = $args->{'restriction'} || $cfg->{'restriction'};
+    $self->{'simple_hashes'}    = $args->{'simple_hashes'} || $cfg->{'simple_hashes'};
 
-    $self->{'verify_tls'}       = (defined($args->{'verify_tls'})) ? $args->{'verify_tls'} : $clientcfg->{'verify_tls'};
-    $self->{'guid'}             = $args->{'guid'} || $clientcfg->{'default_guid'};
-    $self->{'limit'}            = $args->{'limit'} || $clientcfg->{'limit'};
-    $self->{'group_map'}        = (defined($args->{'group_map'})) ? $args->{'group_map'} : $clientcfg->{'group_map'};
-    $self->{'compress_address'} = $args->{'compress_address'} || $clientcfg->{'compress_address'};
-    $self->{'round_confidence'} = $args->{'round_confidence'} || $clientcfg->{'round_confidence'};
+    $self->{'verify_tls'}       = (defined($args->{'verify_tls'})) ? $args->{'verify_tls'} : $cfg->{'verify_tls'};
+    $self->{'guid'}             = $args->{'guid'} || $cfg->{'default_guid'};
+    $self->{'limit'}            = $args->{'limit'} || $cfg->{'limit'};
+    $self->{'group_map'}        = (defined($args->{'group_map'})) ? $args->{'group_map'} : $cfg->{'group_map'};
+    $self->{'compress_address'} = $args->{'compress_address'} || $cfg->{'compress_address'};
+    $self->{'round_confidence'} = $args->{'round_confidence'} || $cfg->{'round_confidence'};
 
-    $self->{'proxy'}            = $args->{'proxy'} || $clientcfg->{'proxy'};
+    $self->{'proxy'}            = $args->{'proxy'} || $cfg->{'proxy'};
     
     if($args->{'fields'}){
         @{$self->{'fields'}} = split(/,/,$args->{'fields'}); 
@@ -103,13 +102,12 @@ sub POST {
     $self->SUPER::POST($rest,$data);
     return $self->responseCode();
 }
-
 sub GET {
     my $self = shift;
     my %args = @_;
 
     my $q = $args{'query'};
-    if (lc($q) =~ /^http(s)?:\/\//) {
+    if(lc($q) =~ /^http(s)?:\/\//){
         $q =~ s/\/$//g;
         ## escape unsafe chars, that's what the data-warehouse does
         ## TODO -- doc this
