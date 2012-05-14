@@ -3,6 +3,7 @@ Revision history for Perl extension CIF::Client.
 0.12    2012-05-07
     - reverted changes from 0.10-0.11 that caused too many client side complications
     - bugfix to Iodef/Url.pm where Regexp::Common qw/URI/ wasn't functioning properly for google spreadsheet phishes
+    - fixes to snort output so it treats "urls" the "right way"
 
 0.09    2012-04-30
 	- changed snort output so that the 'protocol' field is set to tcp/udp/icmp/ip according to 
