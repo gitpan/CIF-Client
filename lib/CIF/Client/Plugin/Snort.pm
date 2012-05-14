@@ -1,5 +1,6 @@
 package CIF::Client::Plugin::Snort;
 use base 'CIF::Client::Plugin::Output';
+use CIF::Client::Support qw(confor);
 
 use Snort::Rule;
 use Regexp::Common qw/net/;
@@ -11,21 +12,21 @@ sub write_out {
     my @array = @{$feed->{'feed'}->{'entry'}};
     return '' unless(exists($array[0]->{'address'}));
 
-    $config = $config->{'config'}->param(-block => $feed->{'query'});
-    
-    if (isempty($config)) { # just use the top level
-    	$config = $config->{'config'}; 	
-    }
+	# we will look for each variabel in the [query] section
+	# if it isnt there, we will check the [client] section.
+	# if it's not there either, we'll use the default
+	
+	my @config_search_path = ( $feed->{'query'}, 'client' );
 
     # allow override of snort rule params
-    my $tag = confor($config, 'snort_tag', undef);
-    my $pri = confor($config, 'snort_priority', undef);
-    my $sid = confor($config, 'snort_startsid', 1);
-    my $thresh = confor($config,'snort_threshold', 'type limit,track by_src,count 1,seconds 3600');
-    my $classtype = confor($config, 'snort_classtype', undef);
-    my $srcnet = confor($config, 'snort_srcnet', 'any');
-    my $srcport = confor($config, 'snort_srcport', 'any');
-    my $msg_prefix = confor($config, 'snort_msg_prefix', '');
+    my $tag = confor($config, \@config_search_path, 'snort_tag', undef);
+    my $pri = confor($config, \@config_search_path, 'snort_priority', undef);
+    my $sid = confor($config, \@config_search_path, 'snort_startsid', 1);
+    my $thresh = confor($config,\@config_search_path, 'snort_threshold', 'type limit,track by_src,count 1,seconds 3600');
+    my $classtype = confor($config, \@config_search_path, 'snort_classtype', undef);
+    my $srcnet = confor($config, \@config_search_path, 'snort_srcnet', 'any');
+    my $srcport = confor($config, \@config_search_path, 'snort_srcport', 'any');
+    my $msg_prefix = confor($config, \@config_search_path, 'snort_msg_prefix', '');
     
 
     my $rules = '';
@@ -173,27 +174,5 @@ sub escape_content {
 	return $x;
 }
 
-sub confor {
-	my $conf = shift;
-	my $name = shift;
-	my $def = shift;
-
-	# handle
-	# snort_foo = 1,2,3
-	# snort_foo = "1,2,3"
-
-	if (exists($conf->{$name}) && defined($conf->{$name})) {
-		return ref($conf->{$name} eq "ARRAY") ? join(', ', @{$conf->{$name}}) : $conf->{$name};
-	}
-	return $def;
-}
-
-sub isempty {
-	my $h = shift;
-	return 1 unless ref($h) eq "HASH";
-	my @k = keys %$h;
-	return 1 if $#k == -1;
-	return 0;
-}
 
 1;

@@ -1,5 +1,6 @@
 package CIF::Client::Plugin::Html;
 use base 'CIF::Client::Plugin::Output';
+use CIF::Client::Support qw(confor);
 
 use HTML::Table;
 
@@ -14,6 +15,16 @@ sub write_out {
     my $hash = $feed->{'feed'};
     my $group_map = ($config->{'group_map'}) ? $hash->{'group_map'} : undef;
 
+    my @config_search_path = ( $feed->{'query'}, 'client' );
+
+    # fields class evenrowclass oddrowclass display
+    
+    my $cfg_fields = confor($config, \@config_search_path, 'fields', undef);
+    my $cfg_display = confor($config, \@config_search_path, 'display', undef);
+    my $cfg_class = confor($config, \@config_search_path, 'class', undef);
+    my $cfg_evenrowclass = confor($config, \@config_search_path, 'evenrowclass', undef);
+    my $cfg_oddrowclass = confor($config, \@config_search_path, 'oddrowclass', undef);
+    
     my $created = $hash->{'created'} || $hash->{'detecttime'};
     my $feedid = $hash->{'id'};
     my @a = @{$hash->{'entry'}};
@@ -72,18 +83,19 @@ sub write_out {
             'alternativeid',
         ));
    }
-   if($config->{'fields'}){
-        @cols = @{$config->{'fields'}};
+   if($cfg_fields){
+        @cols = @{$cfg_fields};
     }
-    if(my $c = $self->{'config'}->{'display'}){
+    
+    if(my $c = $cfg_display){
         @cols = @$c;
     }
 
     my $table = HTML::Table->new(
         -head           => \@cols,
-        -class          => $config->{'class'} || '',
-        -evenrowclass   => $config->{'evenrowclass'} || '',
-        -oddrowclass    => $config->{'oddrowclass'} || '',
+        -class          => $cfg_class || '',
+        -evenrowclass   => $cfg_evenrowclass || '',
+        -oddrowclass    => $cfg_oddrowclass || '',
     );
 
     if(my $max = $self->{'max_desc'}){
