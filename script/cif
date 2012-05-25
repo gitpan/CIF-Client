@@ -34,6 +34,10 @@ my $simple_hashes = (defined($opts{'H'})) ? $opts{'H'} : 1;
 my $verify_tls = $opts{'T'};
 my $compress_address = (defined($opts{'z'})) ? $opts{'z'} : 1;
 
+if($opts{'V'}){
+    print('Client Version: v'.$CIF::Client::VERSION."\n");
+    exit(0);
+}
 die(usage()) unless($query || $opts{'h'});
 
 
@@ -42,6 +46,7 @@ sub usage {
 Usage: perl $0 -q xyz.com
 
     -h  --help:             this message
+    -V  --version:          print the client version (v$CIF::Client::VERSION)
     -C  --config:           specify cofiguration file, default: $c
     -q  --query:            query string (use 'url\\/<md5|sha1>' for url hash lookups)
     -P  --proxy:            set a proxy (eg: https://localhost:5555)
@@ -135,6 +140,13 @@ my ($client,$err) = CIF::Client->new({
 
 die($err) unless($client);
 
+# there shouldn't be any spaces in the query
+# hopefully this won't introduce any new 'features' :)
+$query =~ s/\s+//g;
+if($query =~ /,$/){
+    print "WARNING: please make sure there are no spaces between your comma's, or enclose your -q in double quotes\n";
+    exit(0);
+}
 my @q = split(/\,/,$query);
 foreach (@q){
     my $feed = $client->GET(

@@ -15,11 +15,12 @@ sub write_out {
         foreach(@array){
             push(@json_stream,JSON::to_json($_));
         }
-        $json = join("\n",@json_stream);
+        $json = join(',',@json_stream);
+        $json = '['.$json.']';
     } else {
         return unless($feed->{'feed'}->{'entry'});
         $json = JSON::to_json($feed->{'feed'}->{'entry'});
     }
-    return $json."\n";
+    return $json;
 }
 1;

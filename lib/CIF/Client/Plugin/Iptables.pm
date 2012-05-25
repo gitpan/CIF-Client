@@ -1,5 +1,7 @@
 package CIF::Client::Plugin::Iptables;
 
+use Regexp::Common qw/net/;
+
 sub type { return 'output'; }
 sub write_out {
     my $self = shift;
@@ -11,7 +13,13 @@ sub write_out {
     $text .= "iptables -F CIF_IN\n";
     $text .= "iptables -N CIF_OUT\n";
     $text .= "iptables -F CIF_OUT\n";
+    my $warning = 0;
     foreach (@array){
+        unless($_->{'address'} =~ /^$RE{'net'}{'IPv4'}/){
+            warn 'WARNING: Currently this plugin only supports IPv4 addresses'."\n";
+            return '';
+        }
+        $_->{'address'} = normalize_address($_->{'address'});
         $text .= "iptables -A CIF_IN -s $_->{'address'} -j DROP\n";
         $text .= "iptables -A CIF_OUT -d $_->{'address'} -j DROP\n";
     }
@@ -23,4 +31,16 @@ sub write_out {
 
     return $text;
 }
+
+sub normalize_address {
+    my $addr = shift;
+
+    my @bits = split(/\./,$addr);
+    foreach(@bits){
+        next unless(/^0{1,2}/);
+        $_ =~ s/^0{1,2}//;
+    }
+    return join('.',@bits);
+}   
+        
 1;

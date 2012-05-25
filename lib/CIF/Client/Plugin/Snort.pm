@@ -43,16 +43,22 @@ sub write_out {
             $priority = 9 if(/high/);
         }
 
-        my $dstnet = 'any';
-        my $dstport = 'any';
-        my $urlhost = undef;
+        my $dstnet      = 'any';
+        my $dstport     = 'any';
+        my $urlhost     = undef;
+        my $dnsdomain   = undef;
         my ($urlport, $urlfile);
 
         if (isipv4($_->{'address'})) {
             $dstnet = $_->{'address'};
-            $dstport = $portlist;   
+            $dstport = $portlist;
         }
-        else {
+        elsif (isdomain($_->{'address'})) {
+            $_->{'protocol'} = 17 unless($_->{'protocol'});
+            $dstport = 53;
+            $dstnet = 'any';
+            $dnsdomain = $_->{'address'};
+        } else {
             ($urlhost, $urlport, $urlfile) = ishttpurl($_->{'address'});
             if (defined($urlhost)) {
                 my $urlisip = isipv4($urlhost);
@@ -65,7 +71,6 @@ sub write_out {
                 next;
             }
         }
-
         my $r = Snort::Rule->new(
             -action => 'alert',
             -proto  => translate_proto($_->{'protocol'}),
@@ -90,8 +95,8 @@ sub write_out {
         #www.badsite.com/malware.pl"; flow: to_server, established;
         #content:"Host|3A| www.basesite.com"; nocase;
         #content:"/malware.pl"; http_uri; nocase; sid:23424234;)
-
         if ($urlhost) {
+            $rules .= "# $urlhost    [urlhost rule]\n";
             $r->opts('flow', 'to_server');
             if (!isipv4($urlhost)) {
                 $r->opts('content', 'Host|3A| ' . escape_content($urlhost));
@@ -103,9 +108,17 @@ sub write_out {
                 $r->opts('http_uri');
                 $r->opts('nocase');
             }
+        } 
+        elsif ($dnsdomain) {
+            $rules .= "# $dnsdomain    [domain-only (dns) rule]\n";
+            # alert udp !$DNS_SERVERS any -> any 53 ( msg:"RESTRICTED - botnet domain unknown"; sid:1; content:"foo.com"; )
+            $r->opts('content', escape_content($dnsdomain));
+            $r->opts('nocase');
+        } 
+        else {
+            $rules .= "# $dstnet [ip address only / not url / not domain rule]\n"
         }
-    
-        $rules .= "# " . $_->{'address'} . "\n";
+
         $rules .= $r->string()."\n\n";
     }
     return $rules;
@@ -141,6 +154,14 @@ sub confor {
 		return ref($conf->{$name} eq "ARRAY") ? join(', ', @{$conf->{$name}}) : $conf->{$name};
 	}
 	return $def;
+}
+
+sub isdomain {
+    my $x = shift;
+    if ($x =~ /^[0-9a-z\.\-]+\.[a-z]{2,6}$/i) {
+        return 1;
+    } 
+    return 0;
 }
 
 sub ishttpurl {
