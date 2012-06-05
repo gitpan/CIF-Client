@@ -111,8 +111,8 @@ sub write_out {
         } 
         elsif ($dnsdomain) {
             $rules .= "# $dnsdomain    [domain-only (dns) rule]\n";
-            # alert udp !$DNS_SERVERS any -> any 53 ( msg:"RESTRICTED - botnet domain unknown"; sid:1; content:"foo.com"; )
-            $r->opts('content', escape_content($dnsdomain));
+            # alert udp !$DNS_SERVERS any -> any 53 ( msg:"RESTRICTED - botnet domain unknown"; sid:1; content:"|03|foo|03|com"; )
+            $r->opts('content', content_as_dns_query($dnsdomain)); # dont have to escape bc we passed isdomain() test above
             $r->opts('nocase');
         } 
         else {
@@ -122,6 +122,12 @@ sub write_out {
         $rules .= $r->string()."\n\n";
     }
     return $rules;
+}
+
+sub content_as_dns_query {
+    my $d = shift;
+    return '' unless $d;
+    return join('', map { sprintf("|%2.2x|%s", length($_), $_) } split('\.', $d));
 }
 
 sub isipv4 {
