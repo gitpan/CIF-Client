@@ -54,7 +54,11 @@ sub write_out {
             $dstport = $portlist;
         }
         elsif (isdomain($_->{'address'})) {
-            $_->{'protocol'} = 17 unless($_->{'protocol'});
+            #$_->{'protocol'} = 17 unless($_->{'protocol'});
+            # override this for now, regardless of what's in $PROTOCOL
+            # most of these will be looking at udp packets
+            # if anything it should be set to undef
+            $_->{'protocol'} = 17;
             $dstport = 53;
             $dstnet = 'any';
             $dnsdomain = $_->{'address'};
