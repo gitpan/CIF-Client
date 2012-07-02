@@ -1,4 +1,5 @@
 package CIF::Client::Plugin::Iptables;
+use CIF::Client::Support qw(confor);
 
 use Regexp::Common qw/net/;
 
@@ -8,6 +9,8 @@ sub write_out {
     my $config = shift;
     my $feed = shift;
     my @array = @{$feed->{'feed'}->{'entry'}};
+    
+     my @config_search_path = ('claoverride',  $feed->{'query'}, 'client' );
 
     my $text = "iptables -N CIF_IN\n";
     $text .= "iptables -F CIF_IN\n";

@@ -1,30 +1,34 @@
 package CIF::Client::Plugin::Snort;
 use base 'CIF::Client::Plugin::Output';
+use CIF::Client::Support qw(confor);
 
 use warnings;
 use strict;
 
 use Snort::Rule;
 use Regexp::Common qw/net/;
+use Parse::Range qw(parse_range);
 
 sub write_out {
-    my $self = shift;
-    my $config = shift;
-    my $feed = shift;
-    my @array = @{$feed->{'feed'}->{'entry'}};
+    my $self    = shift;
+    my $config  = shift;
+    my $feed    = shift;
+    my @array   = @{$feed->{'feed'}->{'entry'}};
+      
     return '' unless(exists($array[0]->{'address'}));
 	
-    $config = $config->{'config'};
+    #$config = $config->{'config'};
+    my @config_search_path = ('claoverride',  $feed->{'query'}, 'client' );
     
     # allow override of snort rule params
-    my $tag         = confor($config, 'snort_tag', undef);
-    my $pri         = confor($config, 'snort_priority', undef);
-    my $sid         = confor($config, 'snort_startsid', 1);
-    my $thresh      = confor($config, 'snort_threshold', 'type limit,track by_src,count 1,seconds 3600');
-    my $classtype   = confor($config, 'snort_classtype', undef);
-    my $srcnet      = confor($config, 'snort_srcnet', 'any');
-    my $srcport     = confor($config, 'snort_srcport', 'any');
-    my $msg_prefix  = confor($config, 'snort_msg_prefix','');
+    my $tag         = confor($config, \@config_search_path, 'snort_tag',        undef);
+    my $pri         = confor($config, \@config_search_path, 'snort_priority',   undef);
+    my $sid         = confor($config, \@config_search_path, 'snort_startsid',   1);
+    my $thresh      = confor($config, \@config_search_path, 'snort_threshold',  'type limit,track by_src,count 1,seconds 3600');
+    my $classtype   = confor($config, \@config_search_path, 'snort_classtype',  undef);
+    my $srcnet      = confor($config, \@config_search_path, 'snort_srcnet',     'any');
+    my $srcport     = confor($config, \@config_search_path, 'snort_srcport',    'any');
+    my $msg_prefix  = confor($config, \@config_search_path, 'snort_msg_prefix', '');
 
     my $rules = '';
 
@@ -79,9 +83,9 @@ sub write_out {
             -action => 'alert',
             -proto  => translate_proto($_->{'protocol'}),
             -src    => $srcnet,
-            -sport  => $srcport,
+            -sport  => join(',', (($srcport =~ /^[,\-\d]+$/) ? parse_range($srcport) : $srcport)),
             -dst    => $dstnet,
-            -dport  => $dstport,
+            -dport  => join(',', (($dstport =~ /^[,\-\d]+$/) ? parse_range($dstport) : $dstport)),
             -dir    => '->',
         );
 
@@ -149,21 +153,6 @@ sub translate_proto {
 	my $protos = { 6 => 'tcp', 17 => 'udp', 1 => 'icmp' }; # snort only supports these, default is 'ip'
 	return $protos->{$protonum} if (defined($protonum) && exists($protos->{$protonum}));
 	return 'ip';
-}
-
-sub confor {
-	my $conf = shift;
-	my $name = shift;
-	my $def = shift;
-
-	# handle
-	# snort_foo = 1,2,3
-	# snort_foo = "1,2,3"
-
-	if (exists($conf->{$name}) && defined($conf->{$name})) {
-		return ref($conf->{$name} eq "ARRAY") ? join(', ', @{$conf->{$name}}) : $conf->{$name};
-	}
-	return $def;
 }
 
 sub isdomain {

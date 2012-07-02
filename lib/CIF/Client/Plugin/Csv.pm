@@ -1,4 +1,5 @@
 package CIF::Client::Plugin::Csv;
+use CIF::Client::Support qw(confor);
 
 use Regexp::Common qw/net/;
 
@@ -13,8 +14,12 @@ sub write_out {
     my $feed_guid = $hash->{'guid'};
     my @array = @{$feed->{'feed'}->{'entry'}};
     
-    $config = $config->{'config'};
-    my $nosep = $config->{'csv_noseperator'};
+    my @config_search_path = ('claoverride',  $feed->{'query'}, 'client' );
+
+    # i preserved wes' original spelling of the config variable so as to not break
+    # existing configs.
+    my $cfg_csv_noseparator = confor($config, \@config_search_path, 'csv_noseperator', undef);
+    
     #my @header = keys(%{$array[0]});
     my @header;
     # skip things like arrays and hashrefs for now
@@ -33,7 +38,7 @@ sub write_out {
         foreach (@header){
             if($a->{$_} && !ref($a->{$_})){
                 # deal with , in the field
-                if($nosep){
+                if($cfg_csv_noseparator){
                     $a->{$_} =~ s/,/ /g;
                     $a->{$_} =~ s/\s+/ /g;
                 } else {

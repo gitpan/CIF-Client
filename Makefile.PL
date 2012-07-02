@@ -19,6 +19,7 @@ requires    'Regexp::Common::net'           => '2.108';
 requires    'Regexp::Common::net::CIDR'     => '0.02';
 requires    'LWP::Protocol::https'          => undef;
 requires    'HTTP::Server::Simple'          => 0;
+requires    'Parse::Range'                  => '0.96';
 
 install_script 'cif';
 
