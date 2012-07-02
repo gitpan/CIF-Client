@@ -1,5 +1,12 @@
 Revision history for Perl extension CIF::Client.
 
+0.13    2012-07-02
+    - version bump from 0.12_1
+
+0.12_01 2012-06-29
+    - bugfix where the domains section of the snort plugin was setting some things as 'alert tcp ...'
+      it's not clear if it should be strictly 'alert udp ...' or 'alert ip ...', but for now this works
+
 0.12    2012-05-07
     - reverted changes from 0.10-0.11 that caused too many client side complications
     - bugfix to Iodef/Url.pm where Regexp::Common qw/URI/ wasn't functioning properly for google spreadsheet phishes
