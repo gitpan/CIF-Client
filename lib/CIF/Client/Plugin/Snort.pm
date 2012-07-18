@@ -23,7 +23,7 @@ sub write_out {
     # allow override of snort rule params
     my $tag         = confor($config, \@config_search_path, 'snort_tag',        undef);
     my $pri         = confor($config, \@config_search_path, 'snort_priority',   undef);
-    my $sid         = confor($config, \@config_search_path, 'snort_startsid',   1);
+    my $sid         = confor($config, \@config_search_path, 'snort_startsid',   5000000);
     my $thresh      = confor($config, \@config_search_path, 'snort_threshold',  'type limit,track by_src,count 1,seconds 3600');
     my $classtype   = confor($config, \@config_search_path, 'snort_classtype',  undef);
     my $srcnet      = confor($config, \@config_search_path, 'snort_srcnet',     'any');

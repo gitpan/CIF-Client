@@ -1,5 +1,16 @@
 Revision history for Perl extension CIF::Client.
 
+0.15    2012-07-18
+    - bugfix to uri escape function
+
+0.14    2012-07-11
+    - version bump
+
+0.13_02 2012-07-02
+    - changing default snort_startsid from 1 to 5000000
+    - fixes to how portlist was mapped in the snort plugin
+    - now requires Parse::Range
+
 0.13_01 2012-07-02
     - merging in advanced config options
 
