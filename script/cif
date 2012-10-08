@@ -2,6 +2,8 @@
 
 use strict;
 
+use lib './lib';
+
 use Data::Dumper;
 use Getopt::Std;
 use CIF::Client;

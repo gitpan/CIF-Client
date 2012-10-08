@@ -101,17 +101,30 @@ sub write_out {
 
         #alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (Msg: "Mal_URI
         #www.badsite.com/malware.pl"; flow: to_server, established;
-        #content:"Host|3A| www.basesite.com"; nocase;
+        #content:"Host|3A| www.basesite.com|0A|"; nocase;
         #content:"/malware.pl"; http_uri; nocase; sid:23424234;)
+        
+        # avoid 
+        # FATAL ERROR: ... ParsePattern() dummy buffer overflow, make a smaller pattern please! (Max size = 2047) 
+        my $skip_this_rule = 0;
+        
         if ($urlhost) {
             $rules .= "# $urlhost    [urlhost rule]\n";
             $r->opts('flow', 'to_server');
             if (!isipv4($urlhost)) {
-                $r->opts('content', 'Host|3A| ' . escape_content($urlhost));
+                if (length($urlhost) > 2047) {
+                    $rules .= "# Skipping rule for $urlhost because the length exceeds snort's content limit of 2047\n\n";
+                    $skip_this_rule = 1;
+                }
+                $r->opts('content', 'Host|3A| ' . escape_content($urlhost) . "|0A|"); # add \n so eg www.foo.ca doesnt also match www.foo.cab
                 $r->opts('http_header');
                 $r->opts('nocase');
             }
             if ($urlfile) {
+                if (length($urlfile) > 2047) {
+                    $rules .= "# Skipping rule for $urlfile because the length exceeds snort's content limit of 2047\n\n";
+                    $skip_this_rule = 1;
+                }
                 $r->opts('content', escape_content($urlfile));
                 $r->opts('http_uri');
                 $r->opts('nocase');
@@ -127,7 +140,7 @@ sub write_out {
             $rules .= "# $dstnet [ip address only / not url / not domain rule]\n"
         }
 
-        $rules .= $r->string()."\n\n";
+        $rules .= $r->string()."\n\n" unless($skip_this_rule);
     }
     return $rules;
 }

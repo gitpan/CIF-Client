@@ -1,5 +1,8 @@
 Revision history for Perl extension CIF::Client.
 
+0.16    2012-10-08
+    - bugfix to snort url output
+
 0.15    2012-07-18
     - bugfix to uri escape function
 
