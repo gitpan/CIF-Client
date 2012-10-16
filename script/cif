@@ -42,6 +42,8 @@ if($opts{'V'}){
 }
 die(usage()) unless($query || $opts{'h'});
 
+die(usage()."unknown severity value: $severity, should be 'high','medium' or 'low'\n") if($severity && $severity !~ /^(high|medium|low)$/);
+die(usage()."unknown confidence value: $confidence, should be an integer value\n") if($confidence && $confidence !~ /^\d+$/);
 
 sub usage {
     return <<EOF;
