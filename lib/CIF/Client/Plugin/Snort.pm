@@ -101,7 +101,7 @@ sub write_out {
 
         #alert tcp $HOME_NET any -> $EXTERNAL_NET $HTTP_PORTS (Msg: "Mal_URI
         #www.badsite.com/malware.pl"; flow: to_server, established;
-        #content:"Host|3A| www.basesite.com|0A|"; nocase;
+        #content:"Host|3A| www.basesite.com|0D 0A|"; nocase;
         #content:"/malware.pl"; http_uri; nocase; sid:23424234;)
         
         # avoid 
@@ -116,7 +116,8 @@ sub write_out {
                     $rules .= "# Skipping rule for $urlhost because the length exceeds snort's content limit of 2047\n\n";
                     $skip_this_rule = 1;
                 }
-                $r->opts('content', 'Host|3A| ' . escape_content($urlhost) . "|0A|"); # add \n so eg www.foo.ca doesnt also match www.foo.cab
+                # http://stackoverflow.com/questions/5757290/http-header-line-break-style
+                $r->opts('content', 'Host|3A| ' . escape_content($urlhost) . "|0D 0A|"); # add \r\n so eg www.foo.co doesnt also match www.foo.co
                 $r->opts('http_header');
                 $r->opts('nocase');
             }

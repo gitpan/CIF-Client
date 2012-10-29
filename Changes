@@ -1,5 +1,8 @@
 Revision history for Perl extension CIF::Client.
 
+0.18    2012-10-29
+    - bugfix to snort http output
+
 0.17    2012-10-16
     - bugfix to client options, fails to quietly around -s and -c
 
