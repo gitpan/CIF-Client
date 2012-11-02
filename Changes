@@ -1,5 +1,12 @@
 Revision history for Perl extension CIF::Client.
 
+0.19    2012-11-02
+    - added bro support
+    - bugfix to confor api
+
+0.18_02 2012-10-29
+    - bugfix to client confor api
+
 0.18_01 2012-10-29
     - added experimental Bro output support
 

@@ -14,6 +14,9 @@ sub confor {
     my $name = shift;
     my $def = shift;
 
+    # return unless we get called with a config (eg: via the WebAPI)
+    return unless($conf->{'config'});
+
     # handle
     # snort_foo = 1,2,3
     # snort_foo = "1,2,3"
