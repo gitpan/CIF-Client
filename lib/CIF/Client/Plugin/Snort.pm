@@ -35,7 +35,7 @@ sub write_out {
     foreach (@array){
         next unless($_->{'address'});
 
-        if(exists($_->{'rdata'})){
+        if(exists($_->{'rdata'}) && defined($_->{'rdata'})){
             $_->{'portlist'} = 53;
         }
 
