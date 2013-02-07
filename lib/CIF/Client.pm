@@ -19,7 +19,7 @@ use URI::Escape;
 
 __PACKAGE__->mk_accessors(qw/apikey config/);
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 $VERSION = eval $VERSION;  # see L<perlmodstyle>
 
 # Preloaded methods go here.
@@ -86,6 +86,7 @@ sub new {
 
     if(defined($self->{'verify_tls'}) && $self->{'verify_tls'} == 0){
         $self->getUseragent->ssl_opts(verify_hostname => 0);
+        $self->getUseragent->ssl_opts(SSL_verify_mode => 'SSL_VERIFY_NONE');
     }
 
     if($self->{'proxy'}){
